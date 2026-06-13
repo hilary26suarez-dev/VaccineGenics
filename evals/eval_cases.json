@@ -1,0 +1,128 @@
+{
+  "version": "1.0",
+  "description": "VaccineGenics validation set — 8 synthetic pharmacogenomic profiles with expected platform recommendations.",
+  "note": "All data is 100% synthetic. Expected platforms derived from published pharmacogenomics literature.",
+  "cases": [
+    {
+      "case_id": "EVAL-001",
+      "profile": {
+        "age": 35,
+        "sex": "Male",
+        "ethnicity": "European",
+        "hla_haplotype": "HLA-A*02:01,HLA-DRB1*07:01",
+        "apoe_genotype": "ε3/ε3",
+        "tlr4_variant": "rs4986790_wt",
+        "special_condition": "none"
+      },
+      "expected_platform": "mRNA-LNP",
+      "expected_p_protection": 0.72,
+      "explanation": "Standard European respondedor — perfil wildtype. mRNA-LNP óptima por alta discriminación IRT (a=1.5) y θ ≈ 0."
+    },
+    {
+      "case_id": "EVAL-002",
+      "profile": {
+        "age": 45,
+        "sex": "Female",
+        "ethnicity": "European",
+        "hla_haplotype": "HLA-A*01:01,HLA-DRB1*11:04",
+        "apoe_genotype": "ε3/ε4",
+        "tlr4_variant": "rs4986790_wt",
+        "special_condition": "hiv_controlled",
+        "target_vaccine": "adenoviral_vector"
+      },
+      "expected_platform": "Subunidad Proteica",
+      "expected_p_protection": 0.25,
+      "explanation": "HLA-DRB1*11:04 contraindica adenoviral (VITT). APOE ε3/ε4 → clearance LNP impaired → contraindica mRNA. Doble contraindication → solo subunidad proteica disponible."
+    },
+    {
+      "case_id": "EVAL-003",
+      "profile": {
+        "age": 52,
+        "sex": "Female",
+        "ethnicity": "Latino",
+        "hla_haplotype": "HLA-A*02:01,HLA-DRB1*15:01",
+        "apoe_genotype": "ε4/ε4",
+        "tlr4_variant": "rs4986790_wt",
+        "special_condition": "solid_organ_transplant"
+      },
+      "expected_platform": "Adenoviral",
+      "expected_p_protection": 0.33,
+      "explanation": "APOE ε4/ε4 contraindica mRNA-LNP (clearance gravemente deteriorado). Trasplante penaliza θ. Entre adenoviral y subunidad proteica, adenoviral tiene mayor P(protección)."
+    },
+    {
+      "case_id": "EVAL-004",
+      "profile": {
+        "age": 30,
+        "sex": "Male",
+        "ethnicity": "African",
+        "hla_haplotype": "HLA-A*30:01,HLA-DRB1*03:01",
+        "apoe_genotype": "ε3/ε3",
+        "tlr4_variant": "rs4986790_wt",
+        "special_condition": "none"
+      },
+      "expected_platform": "mRNA-LNP",
+      "expected_p_protection": 0.75,
+      "explanation": "Alto respondedor — TLR wt, HLA-DRB1*03:01 buena presentación, APOE normal. mRNA-LNP mejor P(protección)."
+    },
+    {
+      "case_id": "EVAL-005",
+      "profile": {
+        "age": 68,
+        "sex": "Male",
+        "ethnicity": "East Asian",
+        "hla_haplotype": "HLA-A*33:03,HLA-DRB1*09:01",
+        "apoe_genotype": "ε4/ε4",
+        "tlr4_variant": "rs4986790_wt",
+        "special_condition": "none"
+      },
+      "expected_platform": "Adenoviral",
+      "expected_p_protection": 0.48,
+      "explanation": "APOE ε4/ε4 contraindica mRNA-LNP. Sin condición especial. Adenoviral evita riesgo LNP acumulación."
+    },
+    {
+      "case_id": "EVAL-006",
+      "profile": {
+        "age": 28,
+        "sex": "Male",
+        "ethnicity": "European",
+        "hla_haplotype": "HLA-A*02:01,HLA-DRB1*07:01",
+        "apoe_genotype": "ε3/ε3",
+        "tlr4_variant": "rs4986790_risk",
+        "special_condition": "none"
+      },
+      "expected_platform": "mRNA-LNP",
+      "expected_p_protection": 0.61,
+      "explanation": "TLR4 Asp299Gly atenúa respuesta innata pero no contraindica ninguna plataforma. mRNA-LNP sigue siendo mejor por IRT."
+    },
+    {
+      "case_id": "EVAL-007",
+      "profile": {
+        "age": 42,
+        "sex": "Female",
+        "ethnicity": "South Asian",
+        "hla_haplotype": "HLA-A*24:02,HLA-DRB1*15:01",
+        "apoe_genotype": "ε3/ε4",
+        "tlr4_variant": "rs4986790_wt",
+        "special_condition": "cancer_active_treatment"
+      },
+      "expected_platform": "Adenoviral",
+      "expected_p_protection": 0.30,
+      "explanation": "Cáncer activo penaliza θ. APOE ε3/ε4 → clearance LNP reducido → mRNA contraindicated. Adenoviral tiene P más alta entre las opciones restantes."
+    },
+    {
+      "case_id": "EVAL-008",
+      "profile": {
+        "age": 55,
+        "sex": "Male",
+        "ethnicity": "European",
+        "hla_haplotype": "HLA-B*57:01,HLA-DRB1*07:01",
+        "apoe_genotype": "ε3/ε3",
+        "tlr4_variant": "rs4986790_wt",
+        "special_condition": "none"
+      },
+      "expected_platform": "mRNA-LNP",
+      "expected_p_protection": 0.70,
+      "explanation": "HLA-B*57:01 riesgo hipersensibilidad abacavir (no aplica aquí). Perfil buen respondedor general. mRNA-LNP óptima."
+    }
+  ]
+}
