@@ -190,37 +190,65 @@ def _flatten_hla(hla_haplotype) -> str:
 
 # ── IRT code template shown as "Code Interpreter output" ─────────────────────
 
-def _build_irt_code(theta: float, platform: str, a: float, b: float, c: float) -> tuple[str, str]:
+def _build_irt_code(theta: float, platform: str, a: float, b: float, c: float, lang: str = "es") -> tuple[str, str]:
     """Return (code_block, code_output) for the IRT display."""
-    code = textwrap.dedent(f"""\
-        import math
-
-        # Capacidad inmunogénica del paciente (θ) a partir de puntuaciones de módulos ponderadas
-        theta = {theta:+.4f}
-
-        # Parámetros IRT 4PL para {platform}
-        a = {a}   # discriminación
-        b = {b:.4f}   # dificultad (umbral vacunal)
-        c = {c}   # parámetro de mínimo (piso de protección)
-
-        # Función logística: P(θ) = c + (1-c) / (1 + exp(-a*(θ-b)))
-        logit = -a * (theta - b)
-        p_proteccion = c + (1 - c) / (1 + math.exp(logit))
-
-        print(f"θ = {{theta:+.4f}}")
-        print(f"logit = {{logit:.4f}}")
-        print(f"P(protección) = {{p_proteccion:.4f}} = {{p_proteccion:.1%}}")
-        print(f"Seroconversión probable: {{p_proteccion >= 0.60}}")
-    """)
-
     logit = -a * (theta - b)
     p_prot = c + (1 - c) / (1 + math.exp(logit))
-    output = (
-        f"θ = {theta:+.4f}\n"
-        f"logit = {logit:.4f}\n"
-        f"P(protección) = {p_prot:.4f} = {p_prot:.1%}\n"
-        f"Seroconversión probable: {p_prot >= 0.60}"
-    )
+
+    if lang == "en":
+        code = textwrap.dedent(f"""\
+            import math
+
+            # Patient immunogenic capacity (θ) from weighted module scores
+            theta = {theta:+.4f}
+
+            # IRT 4PL parameters for {platform}
+            a = {a}   # discrimination
+            b = {b:.4f}   # difficulty (vaccine threshold)
+            c = {c}   # lower asymptote (floor of protection)
+
+            # Logistic function: P(θ) = c + (1-c) / (1 + exp(-a*(θ-b)))
+            logit = -a * (theta - b)
+            p_protection = c + (1 - c) / (1 + math.exp(logit))
+
+            print(f"θ = {{theta:+.4f}}")
+            print(f"logit = {{logit:.4f}}")
+            print(f"P(protection) = {{p_protection:.4f}} = {{p_protection:.1%}}")
+            print(f"Seroconversion likely: {{p_protection >= 0.60}}")
+        """)
+        output = (
+            f"θ = {theta:+.4f}\n"
+            f"logit = {logit:.4f}\n"
+            f"P(protection) = {p_prot:.4f} = {p_prot:.1%}\n"
+            f"Seroconversion likely: {p_prot >= 0.60}"
+        )
+    else:
+        code = textwrap.dedent(f"""\
+            import math
+
+            # Capacidad inmunogénica del paciente (θ) a partir de puntuaciones de módulos ponderadas
+            theta = {theta:+.4f}
+
+            # Parámetros IRT 4PL para {platform}
+            a = {a}   # discriminación
+            b = {b:.4f}   # dificultad (umbral vacunal)
+            c = {c}   # parámetro de mínimo (piso de protección)
+
+            # Función logística: P(θ) = c + (1-c) / (1 + exp(-a*(θ-b)))
+            logit = -a * (theta - b)
+            p_proteccion = c + (1 - c) / (1 + math.exp(logit))
+
+            print(f"θ = {{theta:+.4f}}")
+            print(f"logit = {{logit:.4f}}")
+            print(f"P(protección) = {{p_proteccion:.4f}} = {{p_proteccion:.1%}}")
+            print(f"Seroconversión probable: {{p_proteccion >= 0.60}}")
+        """)
+        output = (
+            f"θ = {theta:+.4f}\n"
+            f"logit = {logit:.4f}\n"
+            f"P(protección) = {p_prot:.4f} = {p_prot:.1%}\n"
+            f"Seroconversión probable: {p_prot >= 0.60}"
+        )
     return code, output
 
 
@@ -476,6 +504,7 @@ class AgentCouncil:
                 code_str, code_out = _build_irt_code(
                     irt.get("theta", 0), platform,
                     irt.get("a", 1.0), irt.get("b", 0.0), irt.get("c", 0.05),
+                    lang=lang,
                 )
                 msg.code_block = code_str
                 msg.code_output = code_out

@@ -852,6 +852,7 @@ def _render_patient_deep_dive(platform: str):
 
 # ─── Council Tab ─────────────────────────────────────────────────────────────
 
+@st.fragment
 def _render_council_tab(platform):
     st.markdown(f"""
 <div style="display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0 1rem 0;">
@@ -1295,6 +1296,7 @@ def _render_geneticist_chat():
 
 # ─── Custom profile tab ───────────────────────────────────────────────────────
 
+@st.fragment
 def _render_create_profile_tab(platform):
     st.markdown(f"""
 <div style="display:flex; align-items:center; justify-content:space-between; padding:0.5rem 0 0.8rem 0;">
