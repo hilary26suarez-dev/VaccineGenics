@@ -181,6 +181,8 @@ _TRANS: dict[str, dict[str, str]] = {
         "copyright": "VaccineGenics · Precision Vaccine Intelligence · © 2026 Hilary Suárez",
         "geneticist_system": "Eres un genetista clínico experto en farmacogenómica y vacunas. Responde en español. Menciona que los datos son de simulación.",
         "geneticist_no_patient_ctx": "",
+        "irt_code_label": "Ver código IRT 4PL",
+        "ref_label": "{} referencias bibliográficas",
     },
     "en": {
         "tab_dashboard": "📊 Cohort Dashboard",
@@ -340,6 +342,8 @@ _TRANS: dict[str, dict[str, str]] = {
         "copyright": "VaccineGenics · Precision Vaccine Intelligence · © 2026 Hilary Suárez",
         "geneticist_system": "You are an expert clinical geneticist in pharmacogenomics and vaccines. Answer in English. Mention that data is from simulation.",
         "geneticist_no_patient_ctx": "",
+        "irt_code_label": "View IRT 4PL code",
+        "ref_label": "{} bibliographic references",
     },
 }
 
@@ -714,7 +718,7 @@ def _render_agent_message(msg: dict):
         extras += (
             f'<details style="margin-top:0.6rem;">'
             f'<summary style="cursor:pointer;color:#63b3ed;font-size:0.85rem;'
-            f'font-weight:600;list-style:none;padding:0.3rem 0;">🔢 Ver código IRT 4PL</summary>'
+            f'font-weight:600;list-style:none;padding:0.3rem 0;">🔢 {_t("irt_code_label")}</summary>'
             f'<pre style="background:#0d1117;color:#e2e8f0;padding:0.8rem;border-radius:8px;'
             f'font-size:0.78rem;overflow-x:auto;margin-top:0.4rem;">{code_escaped}</pre>'
             f'{output_block}'
@@ -741,7 +745,7 @@ def _render_agent_message(msg: dict):
         extras += (
             f'<details style="margin-top:0.5rem;">'
             f'<summary style="cursor:pointer;color:#63b3ed;font-size:0.85rem;'
-            f'font-weight:600;list-style:none;padding:0.3rem 0;">📚 {n} referencias bibliográficas</summary>'
+            f'font-weight:600;list-style:none;padding:0.3rem 0;">📚 {_t("ref_label", n)}</summary>'
             f'<div style="margin-top:0.6rem;">{cit_items}</div>'
             f'</details>'
         )
@@ -835,6 +839,7 @@ def _render_patient_deep_dive(platform: str):
             msgs_d = AgentCouncil().stream_session(
                 patient=patient_dict, report=report, platform=platform,
                 citations=cit_d, progress_callback=_op2, on_message=_om2,
+                lang=st.session_state.get("lang", "es"),
             )
             st.session_state["dash_council_messages"] = [m.to_dict() for m in msgs_d]
 
@@ -980,6 +985,7 @@ def _render_council_tab(platform):
         messages = council.stream_session(
             patient=patient_dict, report=report, platform=target_vaccine,
             citations=citations, progress_callback=_on_progress, on_message=_on_message,
+            lang=st.session_state.get("lang", "es"),
         )
 
         st.session_state.council_messages  = [m.to_dict() for m in messages]
@@ -1075,9 +1081,13 @@ def _render_council_tab(platform):
                 with st.spinner(_t("council_responding")):
                     try:
                         _c = AgentCouncil()
-                        resp = _c._llm_call(
-                            COUNCIL_PERSONAS["doc_clinico"].system_prompt,
-                            prompt, max_tokens=500, slug="doc_clinico")
+                        _sys = COUNCIL_PERSONAS["doc_clinico"].system_prompt
+                        if st.session_state.get("lang","es") == "en":
+                            _sys = _sys.replace(
+                                "IMPORTANTE: Responde SIEMPRE en español.",
+                                "IMPORTANT: Always respond in English."
+                            )
+                        resp = _c._llm_call(_sys, prompt, max_tokens=500, slug="doc_clinico")
                         if not resp:
                             resp = _t("no_llm")
                     except Exception as exc:
@@ -1474,6 +1484,7 @@ def _render_create_profile_tab(platform):
             messages = council.stream_session(
                 patient=cp_patient, report=cp_report, platform=cp_sel_vax,
                 citations=citations, progress_callback=_on_prog_c, on_message=_on_msg_c,
+                lang=st.session_state.get("lang", "es"),
             )
             st.session_state["custom_council_messages"] = [m.to_dict() for m in messages]
 

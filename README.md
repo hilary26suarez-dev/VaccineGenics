@@ -4,7 +4,7 @@
 
 [![Azure AI](https://img.shields.io/badge/Azure%20AI-GitHub%20Models%20%7C%20Foundry-cyan)](https://models.inference.ai.azure.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-green)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Live%20Demo-red)](https://vaccinegenics.streamlit.app)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Live%20Demo-red)](https://vaccinegenics-dbzefqukskjcbuuwkptufn.streamlit.app/)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 [![Research](https://img.shields.io/badge/Research-Precision%20Vaccinology-blue)](#)
 
@@ -15,7 +15,7 @@
 
 ## 🎬 Demo
 
-> **[▶ Live App on Streamlit Cloud](https://vaccinegenics.streamlit.app)**
+> **[▶ Live App on Streamlit Cloud](https://vaccinegenics-dbzefqukskjcbuuwkptufn.streamlit.app/)**
 >
 > **▶ Watch the 5-minute demo on YouTube** — _link added before submission deadline_
 
@@ -195,7 +195,7 @@ python -m streamlit run run_ui.py
 Open `http://localhost:8501` in your browser.
 
 **Or use the live Streamlit Cloud deployment** — no setup required:
-`https://vaccinegenics.streamlit.app`
+`https://vaccinegenics-dbzefqukskjcbuuwkptufn.streamlit.app/`
 
 ---
 

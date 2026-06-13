@@ -372,6 +372,7 @@ class AgentCouncil:
         citations: list[dict],
         progress_callback: Callable[[str], None] | None = None,
         on_message: Callable[[object], None] | None = None,
+        lang: str = "es",
     ) -> list[CouncilMessage]:
         """
         Run the full 6-turn live LLM council session.
@@ -379,6 +380,7 @@ class AgentCouncil:
         Returns list of CouncilMessage in order.
         progress_callback(agent_name) called before each LLM call.
         on_message(CouncilMessage) called immediately after each agent responds.
+        lang: "es" or "en" — controls the language of all agent responses.
         """
         messages: list[CouncilMessage] = []
 
@@ -388,29 +390,53 @@ class AgentCouncil:
                 on_message(msg)
 
         context = self._build_context(patient, report, platform)
+        cit_str = str([c['pmid'] + ' — ' + c['relevance'] for c in citations[:3]])
 
-        order = [
-            ("dr_genomico",
-             "Analiza las variantes genéticas en el contexto anterior. "
-             "Identifica los hallazgos farmacogenómicos más significativos clínicamente."),
-            ("dra_evidencia",
-             "El análisis genómico es: {prev}\n\n"
-             "Ahora busca y cita la literatura relevante (PMIDs proporcionados: "
-             + str([c['pmid'] + ' — ' + c['relevance'] for c in citations[:3]])
-             + ")."),
-            ("ing_riesgo",
-             "La revisión de la literatura es: {prev}\n\n"
-             "Ahora presenta los resultados de la computación IRT y la comparación entre plataformas."),
-            ("doc_clinico",
-             "El análisis de ingeniería es: {prev}\n\n"
-             "Sintetiza una recomendación clínica. Luego, pídele al Crítico que la cuestione."),
-            ("critico",
-             "La recomendación clínica es: {prev}\n\n"
-             "Encuentra y cuestiona la suposición más débil en este análisis."),
-            ("doc_clinico_final",
-             "El cuestionamiento fue: {prev}\n\n"
-             "Responde a la crítica y emite tu recomendación final y definitiva."),
-        ]
+        if lang == "en":
+            order = [
+                ("dr_genomico",
+                 "Analyze the genetic variants in the above context. "
+                 "Identify the most clinically significant pharmacogenomic findings."),
+                ("dra_evidencia",
+                 "The genomic analysis is: {prev}\n\n"
+                 "Now find and cite the relevant literature (provided PMIDs: " + cit_str + ")."),
+                ("ing_riesgo",
+                 "The literature review is: {prev}\n\n"
+                 "Now present the IRT computation results and the cross-platform comparison."),
+                ("doc_clinico",
+                 "The engineering analysis is: {prev}\n\n"
+                 "Synthesize a clinical recommendation. Then ask the Critic to challenge it."),
+                ("critico",
+                 "The clinical recommendation is: {prev}\n\n"
+                 "Find and challenge the weakest assumption in this analysis."),
+                ("doc_clinico_final",
+                 "The challenge was: {prev}\n\n"
+                 "Respond to the critique and issue your final, definitive recommendation."),
+            ]
+        else:
+            order = [
+                ("dr_genomico",
+                 "Analiza las variantes genéticas en el contexto anterior. "
+                 "Identifica los hallazgos farmacogenómicos más significativos clínicamente."),
+                ("dra_evidencia",
+                 "El análisis genómico es: {prev}\n\n"
+                 "Ahora busca y cita la literatura relevante (PMIDs proporcionados: " + cit_str + ")."),
+                ("ing_riesgo",
+                 "La revisión de la literatura es: {prev}\n\n"
+                 "Ahora presenta los resultados de la computación IRT y la comparación entre plataformas."),
+                ("doc_clinico",
+                 "El análisis de ingeniería es: {prev}\n\n"
+                 "Sintetiza una recomendación clínica. Luego, pídele al Crítico que la cuestione."),
+                ("critico",
+                 "La recomendación clínica es: {prev}\n\n"
+                 "Encuentra y cuestiona la suposición más débil en este análisis."),
+                ("doc_clinico_final",
+                 "El cuestionamiento fue: {prev}\n\n"
+                 "Responde a la crítica y emite tu recomendación final y definitiva."),
+            ]
+
+        _LANG_INSTRUCTION_ES = "IMPORTANTE: Responde SIEMPRE en español."
+        _LANG_INSTRUCTION_EN = "IMPORTANT: Always respond in English."
 
         prev_content = ""
         for slug, user_tmpl in order:
@@ -418,8 +444,16 @@ class AgentCouncil:
             if progress_callback:
                 progress_callback(persona.name)
 
+            # Swap language instruction in system prompt based on selected lang
+            if lang == "en":
+                sys_prompt = persona.system_prompt.replace(
+                    _LANG_INSTRUCTION_ES, _LANG_INSTRUCTION_EN
+                )
+            else:
+                sys_prompt = persona.system_prompt
+
             user_msg = context + "\n\n" + user_tmpl.format(prev=prev_content[:600])
-            content = self._llm_call(persona.system_prompt, user_msg, slug=slug)
+            content = self._llm_call(sys_prompt, user_msg, slug=slug)
 
             if not content:
                 content = (
