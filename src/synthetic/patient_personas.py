@@ -17,13 +17,15 @@ class PatientPersona(TypedDict):
     age: int
     sex: str
     ethnicity: str
-    backstory: str                  # narrative description shown in UI
+    backstory: str                  # narrative description shown in UI (Spanish)
+    backstory_en: str               # English version
     special_condition: str          # SpecialCondition slug
     apoe_genotype: str
     hla_haplotype: list[str]
     variants: dict[str, dict]
     target_vaccine: str
-    why_interesting: str            # one-line hook for the UI
+    why_interesting: str            # one-line hook for the UI (Spanish)
+    why_interesting_en: str         # English version
 
 
 # ── 8 clinical demo personas ─────────────────────────────────────────────────
@@ -58,10 +60,20 @@ PERSONAS: list[PatientPersona] = [
             "rs2070788": {"genotype": "A/G", "risk_allele": "G", "gene": "TMPRSS2"},
             "rs8099917": {"genotype": "T/T", "risk_allele": "G", "gene": "IFNL3"},
         },
+        "backstory_en": (
+            "María, 52, received a kidney transplant 3 years ago. "
+            "She is on immunosuppressive therapy (tacrolimus + mycophenolate). "
+            "Her physician wants to vaccinate her against COVID-19 but questions remain "
+            "about which platform is safe given her genetics."
+        ),
         "target_vaccine": "mRNA",
         "why_interesting": (
             "APOE ε4/ε4 + trasplante = mRNA-LNP contraindicada por doble riesgo. "
             "El Crítico desafiará si la subunidad proteica es realmente segura."
+        ),
+        "why_interesting_en": (
+            "APOE ε4/ε4 + transplant = mRNA-LNP contraindicated due to double risk. "
+            "The Adversarial Reviewer will challenge whether protein subunit is truly safe."
         ),
     },
 
@@ -92,10 +104,20 @@ PERSONAS: list[PatientPersona] = [
             "rs429358":  {"genotype": "T/T", "risk_allele": "C", "gene": "APOE"},
             "rs7412":    {"genotype": "C/C", "risk_allele": "T", "gene": "APOE"},
         },
+        "backstory_en": (
+            "Carlos, 30, an athlete with no medical conditions. His African ancestry "
+            "introduces IL-6 variants with a different distribution than European populations. "
+            "His TLR profile is wildtype — an ideal candidate to compare how ancestry "
+            "affects vaccine response prediction."
+        ),
         "target_vaccine": "adenoviral_vector",
         "why_interesting": (
             "Perfil de alto respondedor — el Crítico cuestionará si rs2070788 GG "
             "tiene penetrancia suficiente para cambiar la plataforma recomendada."
+        ),
+        "why_interesting_en": (
+            "High-responder profile — the Adversarial Reviewer will question whether "
+            "rs2070788 GG has sufficient penetrance to change the recommended platform."
         ),
     },
 
@@ -126,10 +148,20 @@ PERSONAS: list[PatientPersona] = [
             "rs429358":  {"genotype": "T/C", "risk_allele": "C", "gene": "APOE"},
             "rs7412":    {"genotype": "C/C", "risk_allele": "T", "gene": "APOE"},
         },
+        "backstory_en": (
+            "Elena, 45, lives with well-controlled HIV (CD4=580, undetectable viral load "
+            "on ART). She carries HLA-DRB1*11:04, putting her at risk for VITT with "
+            "adenoviral vaccines. The clinical question is which of the remaining platforms "
+            "is most appropriate for her immune profile."
+        ),
         "target_vaccine": "adenoviral_vector",
         "why_interesting": (
             "HLA-DRB1*11:04 = VITT con adenoviral. VIH penaliza θ. "
             "El consejo debe recomendar subunidad proteica y explicar por qué."
+        ),
+        "why_interesting_en": (
+            "HLA-DRB1*11:04 = VITT risk with adenoviral. HIV penalizes θ. "
+            "The council must recommend protein subunit and explain why."
         ),
     },
 
@@ -160,10 +192,20 @@ PERSONAS: list[PatientPersona] = [
             "rs2070788": {"genotype": "G/G", "risk_allele": "G", "gene": "TMPRSS2"},
             "rs8099917": {"genotype": "G/T", "risk_allele": "G", "gene": "IFNL3"},
         },
+        "backstory_en": (
+            "David, 68, of Korean origin, no serious chronic conditions but with a "
+            "high-inflammatory genetic risk profile. His IL-6 shows the high-activity "
+            "haplotype (EAS has high G-allele frequency), and his advanced age amplifies "
+            "the risk of excessive inflammatory response."
+        ),
         "target_vaccine": "mRNA",
         "why_interesting": (
             "APOE ε4/ε4 + EAS + 68 años = múltiples factores de riesgo superpuestos. "
             "El debate entre agentes será especialmente rico."
+        ),
+        "why_interesting_en": (
+            "APOE ε4/ε4 + EAS + 68 years = multiple overlapping risk factors. "
+            "The agent debate will be especially rich."
         ),
     },
 
@@ -194,10 +236,20 @@ PERSONAS: list[PatientPersona] = [
             "rs1800795": {"genotype": "C/C", "risk_allele": "C", "gene": "IL6"},
             "rs2070788": {"genotype": "A/A", "risk_allele": "G", "gene": "TMPRSS2"},
         },
+        "backstory_en": (
+            "Sofía, 41, undergoing chemotherapy for stage III breast cancer "
+            "(cyclophosphamide + doxorubicin). Marked lymphopenia (CD4=180). "
+            "Her oncologist wants to vaccinate her against influenza and COVID-19 "
+            "during the window between cycles. APOE ε3/ε4 adds moderate risk with LNP."
+        ),
         "target_vaccine": "protein_subunit",
         "why_interesting": (
             "Quimio = θ -0.60 + APOE ε3/ε4 + IL-6 C/C. "
             "El consejo debe debatir si vacunar entre ciclos y qué plataforma minimiza el riesgo."
+        ),
+        "why_interesting_en": (
+            "Chemo = θ -0.60 + APOE ε3/ε4 + IL-6 C/C. "
+            "The council must debate whether to vaccinate between cycles and which platform minimizes risk."
         ),
     },
 
@@ -228,10 +280,20 @@ PERSONAS: list[PatientPersona] = [
             "rs429358":  {"genotype": "T/T", "risk_allele": "C", "gene": "APOE"},
             "rs7412":    {"genotype": "C/C", "risk_allele": "T", "gene": "APOE"},
         },
+        "backstory_en": (
+            "Marco, 9, no chronic conditions. His parents are genomics researchers who "
+            "want to know if their son's HLA profile puts him in the high vaccine responder "
+            "category. HLA-A*02:01 + DRB1*01:01 = a combination associated with robust "
+            "responses in pediatric vaccine studies."
+        ),
         "target_vaccine": "mRNA",
         "why_interesting": (
             "Perfil genético excelente + edad pediátrica. "
             "El debate girará en torno a dosificación ajustada por edad vs riesgo miocarditis en varones jóvenes."
+        ),
+        "why_interesting_en": (
+            "Excellent genetic profile + pediatric age. "
+            "Debate will center on age-adjusted dosing vs. myocarditis risk in young males."
         ),
     },
 
@@ -263,10 +325,20 @@ PERSONAS: list[PatientPersona] = [
             "rs429358":  {"genotype": "T/T", "risk_allele": "C", "gene": "APOE"},
             "rs7412":    {"genotype": "C/C", "risk_allele": "T", "gene": "APOE"},
         },
+        "backstory_en": (
+            "Fátima, 38, severe HIV with CD4=85 (no stable ART access). "
+            "Carries TLR7 rs179008 LOF (homozygous, X-linked) — severely reduced innate "
+            "response to ssRNA. Also HLA-DRB1*11:04 puts her at VITT risk with adenoviral "
+            "vectors. All three platforms present risks."
+        ),
         "target_vaccine": "protein_subunit",
         "why_interesting": (
             "VIH severo + TLR7 LOF + VITT risk = el caso más complejo del consejo. "
             "El Crítico tendrá material para cuestionar todas las recomendaciones."
+        ),
+        "why_interesting_en": (
+            "Severe HIV + TLR7 LOF + VITT risk = the most complex case in the council. "
+            "The Adversarial Reviewer will have material to challenge every recommendation."
         ),
     },
 
@@ -298,10 +370,20 @@ PERSONAS: list[PatientPersona] = [
             "rs429358":  {"genotype": "C/T", "risk_allele": "C", "gene": "APOE"},
             "rs7412":    {"genotype": "C/C", "risk_allele": "T", "gene": "APOE"},
         },
+        "backstory_en": (
+            "Roberto, 60, severe rheumatoid arthritis treated with tocilizumab (anti-IL-6R) "
+            "for 2 years. Paradoxically, his IL-6 gene has the high-expression haplotype, "
+            "which tocilizumab blocks but which affects post-vaccine signaling. "
+            "Moderate APOE ε3/ε4."
+        ),
         "target_vaccine": "mRNA",
         "why_interesting": (
             "Tocilizumab bloquea IL-6R pero el gen sigue siendo C/C. "
             "Debate sobre timing vacunal relativo a la dosis de biológico."
+        ),
+        "why_interesting_en": (
+            "Tocilizumab blocks IL-6R but the gene remains C/C. "
+            "Debate on vaccine timing relative to biologic dosing schedule."
         ),
     },
 ]
@@ -341,9 +423,37 @@ _COND_ES = {
     "autoimmune_on_biologics": "Autoinmune – biológicos",
     "autoimmune_on_steroids": "Autoinmune – corticoides",
 }
+_ETH_EN = {
+    "Latino": "Latino", "African": "African", "European": "European",
+    "East Asian": "East Asian", "South Asian": "South Asian",
+    "Mixed": "Mixed", "Unknown": "Unknown",
+}
+_COND_EN = {
+    "none": "Healthy",
+    "solid_organ_transplant": "Organ transplant",
+    "hiv_controlled": "Controlled HIV",
+    "hiv_moderate": "Moderate HIV",
+    "hiv_severe": "Severe HIV",
+    "cancer_active_treatment": "Active cancer",
+    "cancer_remission": "Cancer remission",
+    "radiation_exposure": "Radiation exposure",
+    "bone_marrow_transplant_recent": "Recent BMT",
+    "bone_marrow_transplant_established": "Established BMT",
+    "autoimmune_on_biologics": "Autoimmune – biologics",
+    "autoimmune_on_steroids": "Autoimmune – steroids",
+}
 
 
-def persona_short_labels() -> list[str]:
+def persona_short_labels(lang: str = "es") -> list[str]:
+    if lang == "en":
+        return [
+            (
+                f"{p['name']} ({p['age']} y/o · "
+                f"{_ETH_EN.get(p['ethnicity'], p['ethnicity'])} · "
+                f"{_COND_EN.get(p['special_condition'], p['special_condition'])})"
+            )
+            for p in PERSONAS
+        ]
     return [
         (
             f"{p['name']} ({p['age']} años · "

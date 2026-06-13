@@ -1,6 +1,6 @@
 # 🧬 VaccineGenics — Precision Vaccine Intelligence with Multi-Agent AI
 
-> _"Your DNA determines whether a vaccine will protect you. VaccineGenics calculates it."_
+> _"Your DNA decides. VaccineGenics calculates."_
 
 [![Azure AI](https://img.shields.io/badge/Azure%20AI-GitHub%20Models%20%7C%20Foundry-cyan)](https://models.inference.ai.azure.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-green)](https://python.org)
@@ -17,7 +17,7 @@
 
 > **[▶ Live App on Streamlit Cloud](https://vaccinegenics-dbzefqukskjcbuuwkptufn.streamlit.app)**
 >
-> **▶ Watch the 5-minute demo on YouTube** (https://youtu.be/Zc8dl3usk0c)
+> **[▶ Watch the 5-minute demo on YouTube](https://youtu.be/Zc8dl3usk0c)**
 
 ---
 
@@ -124,7 +124,7 @@ Every call to Agent 6 is traced in Azure Application Insights automatically.
 ### Hack for Good & Best Student Categories
 
 - **Hack for Good**: Addresses real healthcare equity gap — patients with specific genetic profiles are under-served by one-size-fits-all vaccine programs. VaccineGenics enables precision vaccinology at zero marginal cost using AI reasoning.
-- **Best Student**: Built solo by a medical student in Costa Rica, combining clinical pharmacogenomics expertise with full-stack AI engineering.
+- **Best Student**: Built solo by a biotech engineering student in Costa Rica, combining clinical pharmacogenomics expertise with full-stack AI engineering.
 
 ---
 
@@ -181,7 +181,7 @@ Create a `.env` file in the project root (never commit this file):
 GITHUB_TOKEN=ghp_your_token_here
 
 # Optional — Azure AI Foundry for Agent 6 (Doc. Clínico Final)
-AZURE_AI_PROJECT_ENDPOINT=https://<hub>
+AZURE_AI_PROJECT_ENDPOINT=https://your-hub-name.services.ai.azure.com
 AZURE_AI_PROJECT_KEY=your_key_here
 AZURE_AI_AGENT_MODEL=o4-mini
 ```
@@ -360,8 +360,8 @@ Synthetic data   Auth + API       genomic data     Validation        partnership
 
 ### The number that matters
 
-> ~500 million people per year receive vaccines while carrying pharmacogenomic
-> variants that affect their immune response — and they don't know it.
+> Every second, over 30,000 vaccine doses are administered worldwide
+> to people whose genetic profile is never considered.
 > VaccineGenics is built to close that gap, starting with Latin America,
 > the most underrepresented population in current genomic databases.
 

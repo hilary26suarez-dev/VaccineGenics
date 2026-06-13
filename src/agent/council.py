@@ -36,7 +36,8 @@ class AgentPersona:
     slug: str
     name: str
     avatar: str
-    role: str
+    role: str           # Spanish label
+    role_en: str        # English label
     color: str          # hex for UI badge
     system_prompt: str
 
@@ -47,6 +48,7 @@ PERSONAS: dict[str, AgentPersona] = {
         name="Dr. Genómico",
         avatar="🧬",
         role="Analista Genómico",
+        role_en="Genomic Analyst",
         color="#4a90d9",
         system_prompt=(
             "Eres Dr. Genómico, un farmacogenomicista clínico. "
@@ -63,6 +65,7 @@ PERSONAS: dict[str, AgentPersona] = {
         name="Dra. Evidencia",
         avatar="📚",
         role="Científica de Evidencia",
+        role_en="Evidence Scientist",
         color="#00c853",
         system_prompt=(
             "Eres Dra. Evidencia, especialista en literatura biomédica. "
@@ -79,6 +82,7 @@ PERSONAS: dict[str, AgentPersona] = {
         name="Ing. de Riesgo",
         avatar="⚙️",
         role="Ingeniero de Riesgos",
+        role_en="Risk Engineer",
         color="#ffd600",
         system_prompt=(
             "Eres el Ingeniero de Riesgo. Has ejecutado el modelo IRT 4PL con "
@@ -95,6 +99,7 @@ PERSONAS: dict[str, AgentPersona] = {
         name="Doc. Clínico",
         avatar="🩺",
         role="Sintetizador Clínico",
+        role_en="Clinical Synthesizer",
         color="#b22222",
         system_prompt=(
             "Eres Doc. Clínico, farmacólogo clínico. "
@@ -111,6 +116,7 @@ PERSONAS: dict[str, AgentPersona] = {
         name="Crítico Interno",
         avatar="🔎",
         role="Revisor Adversario",
+        role_en="Adversarial Reviewer",
         color="#ff7043",
         system_prompt=(
             "Eres el Crítico Interno, revisor adversarial de seguridad. "
@@ -128,6 +134,7 @@ PERSONAS: dict[str, AgentPersona] = {
         name="Doc. Clínico",
         avatar="🩺",
         role="Recomendación Final",
+        role_en="Final Recommendation",
         color="#b22222",
         system_prompt=(
             "Eres Doc. Clínico. Acabas de escuchar el cuestionamiento del Crítico Interno. "
@@ -163,6 +170,7 @@ class CouncilMessage:
             "name": self.persona.name,
             "avatar": self.persona.avatar,
             "role": self.persona.role,
+            "role_en": self.persona.role_en,
             "color": self.persona.color,
             "content": self.content,
             "code_block": self.code_block,

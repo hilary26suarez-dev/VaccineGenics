@@ -43,7 +43,7 @@ _OFFLINE_LATENCIES = {
 }
 
 
-def render_reasoning_trace(council_session: dict) -> None:
+def render_reasoning_trace(council_session: dict, lang: str = "es") -> None:
     """
     Render a vertical timeline of each agent's contribution.
 
@@ -57,20 +57,28 @@ def render_reasoning_trace(council_session: dict) -> None:
     platform = council_session.get("platform", "?")
 
     if not steps:
-        st.info("Ejecuta el consejo de agentes para ver la telemetría de razonamiento.")
+        _msg = ("Run the agent council to see reasoning telemetry."
+                if lang == "en"
+                else "Ejecuta el consejo de agentes para ver la telemetría de razonamiento.")
+        st.info(_msg)
         return
+
+    _title = "Decision Tree — Agent Council" if lang == "en" else "Árbol de Decisiones — Consejo de Agentes"
+    _pat_lbl = "Patient" if lang == "en" else "Paciente"
+    _plat_lbl = "Platform" if lang == "en" else "Plataforma"
+    _rounds = "debate rounds" if lang == "en" else "turnos de debate"
 
     st.markdown(f"""
 <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1.2rem;">
   <div style="font-size:1.5rem;">🔬</div>
   <div>
     <div style="font-size:1rem;font-weight:700;color:#f1f5f9;">
-      Árbol de Decisiones — Consejo de Agentes
+      {_title}
     </div>
     <div style="font-size:0.78rem;color:#64748b;margin-top:1px;">
-      Paciente: <strong style="color:#94a3b8;">{patient}</strong>
-      &nbsp;·&nbsp; Plataforma: <strong style="color:#94a3b8;">{platform}</strong>
-      &nbsp;·&nbsp; {len(steps)} turnos de debate
+      {_pat_lbl}: <strong style="color:#94a3b8;">{patient}</strong>
+      &nbsp;·&nbsp; {_plat_lbl}: <strong style="color:#94a3b8;">{platform}</strong>
+      &nbsp;·&nbsp; {len(steps)} {_rounds}
     </div>
   </div>
 </div>
@@ -121,7 +129,8 @@ def render_reasoning_trace(council_session: dict) -> None:
             'margin-left:15px;margin-top:0;margin-bottom:0;"></div>'
         ) if i < len(steps) - 1 else ""
 
-        with st.expander(f"{avatar} {name} — {role}  ({latency_ms}ms)", expanded=(i == 0)):
+        _role_display = msg.get("role_en", role) if lang == "en" else role
+        with st.expander(f"{avatar} {name} — {_role_display}  ({latency_ms}ms)", expanded=(i == 0)):
             st.markdown(f"""
 <div style="border-left:3px solid {color};padding-left:10px;margin-bottom:0.6rem;">
   <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:6px;">
@@ -142,25 +151,31 @@ def render_reasoning_trace(council_session: dict) -> None:
         st.markdown(connector, unsafe_allow_html=True)
 
     # Summary bar
+    _lbl_agents = "Agents" if lang == "en" else "Agentes"
+    _lbl_latency = "Total latency (simulated)" if lang == "en" else "Latencia total (simulada)"
+    _lbl_pmids = "PMIDs cited" if lang == "en" else "PMIDs citados"
+    _lbl_crit = "Critical intervention" if lang == "en" else "Intervención crítica"
+    _lbl_yes = "Yes — recommendation revised" if lang == "en" else "Sí — recomendación revisada"
+    _has_crit = any(m.get("agent") == "critico" for m in steps)
     st.markdown(f"""
 <div style="margin-top:1.2rem;padding:0.7rem 1rem;
             background:rgba(255,255,255,0.02);
             border:1px solid rgba(255,255,255,0.06);
             border-radius:8px;display:flex;gap:1.5rem;flex-wrap:wrap;">
   <div style="font-size:0.8rem;color:#64748b;">
-    Agentes: <strong style="color:#94a3b8;">{len(steps)}</strong>
+    {_lbl_agents}: <strong style="color:#94a3b8;">{len(steps)}</strong>
   </div>
   <div style="font-size:0.8rem;color:#64748b;">
-    Latencia total (simulada): <strong style="color:#94a3b8;">{total_ms:,}ms</strong>
+    {_lbl_latency}: <strong style="color:#94a3b8;">{total_ms:,}ms</strong>
   </div>
   <div style="font-size:0.8rem;color:#64748b;">
-    PMIDs citados: <strong style="color:#4db8ff;">
+    {_lbl_pmids}: <strong style="color:#4db8ff;">
       {sum(len(m.get('citations', [])) for m in steps)}
     </strong>
   </div>
   <div style="font-size:0.8rem;color:#64748b;">
-    Intervención crítica: <strong style="color:#ff7043;">
-      {"Sí — recomendación revisada" if any(m.get("agent") == "critico" for m in steps) else "No"}
+    {_lbl_crit}: <strong style="color:#ff7043;">
+      {_lbl_yes if _has_crit else "No"}
     </strong>
   </div>
 </div>
@@ -280,19 +295,25 @@ def _cached_eval_results() -> list:
     return [_run_single_eval(c) for c in cases]
 
 
-def render_eval_scores() -> None:
+def render_eval_scores(lang: str = "es") -> None:
     """
     Load eval cases, run them through the engine, and display results + accuracy.
     """
-    st.markdown("""
+    _subtitle = ("Target: accuracy ≥ 80% in vaccine platform recommendation"
+                 if lang == "en"
+                 else "Objetivo: accuracy ≥ 80% en recomendación de plataforma vacunal")
+    _title = ("Validation Set — 8 Synthetic Cases"
+              if lang == "en"
+              else "Validation Set — 8 Casos Sintéticos")
+    st.markdown(f"""
 <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1.2rem;">
   <div style="font-size:1.5rem;">✅</div>
   <div>
     <div style="font-size:1rem;font-weight:700;color:#f1f5f9;">
-      Validation Set — 8 Casos Sintéticos
+      {_title}
     </div>
     <div style="font-size:0.78rem;color:#64748b;margin-top:1px;">
-      Objetivo: accuracy ≥ 80% en recomendación de plataforma vacunal
+      {_subtitle}
     </div>
   </div>
 </div>
@@ -300,10 +321,14 @@ def render_eval_scores() -> None:
 
     cases = _load_eval_cases()
     if not cases:
-        st.warning("No se encontró `evals/eval_cases.json`. Verifica la ruta del archivo.")
+        _warn = ("`evals/eval_cases.json` not found. Check the file path."
+                 if lang == "en"
+                 else "No se encontró `evals/eval_cases.json`. Verifica la ruta del archivo.")
+        st.warning(_warn)
         return
 
-    with st.spinner("Corriendo eval set…"):
+    _spinner = "Running eval set…" if lang == "en" else "Corriendo eval set…"
+    with st.spinner(_spinner):
         results = _cached_eval_results()
 
     correct = sum(1 for r in results if r.get("is_match", False))
@@ -312,6 +337,9 @@ def render_eval_scores() -> None:
 
     acc_color = "#00c853" if accuracy >= 0.80 else "#ff5252"
     acc_icon = "✅" if accuracy >= 0.80 else "❌"
+    _cases_correct = f"{correct}/{total} cases correct" if lang == "en" else f"{correct}/{total} casos correctos"
+    _goal_met = ("Target ≥ 80% achieved" if lang == "en" else "Meta ≥ 80% alcanzada")
+    _goal_not = ("Target ≥ 80% not achieved" if lang == "en" else "Meta ≥ 80% no alcanzada")
 
     # Accuracy banner
     st.markdown(f"""
@@ -325,13 +353,19 @@ def render_eval_scores() -> None:
       {accuracy:.1%} accuracy
     </div>
     <div style="font-size:0.82rem;color:#94a3b8;margin-top:2px;">
-      {correct}/{total} casos correctos
+      {_cases_correct}
       &nbsp;·&nbsp;
-      {"Meta ≥ 80% alcanzada" if accuracy >= 0.80 else "Meta ≥ 80% no alcanzada"}
+      {_goal_met if accuracy >= 0.80 else _goal_not}
     </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+    # Column headers
+    if lang == "en":
+        _h = ["Case", "Expected", "Obtained", "P(exp.)", "P(actual)", "OK", "Context"]
+    else:
+        _h = ["Caso", "Esperado", "Obtenido", "P(esp.)", "P(real)", "OK", "Contexto"]
 
     # Per-case results table
     rows_html = ""
@@ -358,26 +392,18 @@ def render_eval_scores() -> None:
   <td style="padding:6px 8px;font-size:0.75rem;color:#64748b;max-width:200px;">{explanation if not err else f'ERROR: {err}'}</td>
 </tr>"""
 
+    th = "".join(
+        f'<th style="padding:6px 8px;text-align:{"center" if h == "OK" else "left"};'
+        f'font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:0.1em;">{h}</th>'
+        for h in _h
+    )
     st.markdown(f"""
 <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);
             border-radius:8px;overflow-x:auto;">
   <table style="width:100%;border-collapse:collapse;font-family:sans-serif;">
     <thead>
       <tr style="background:rgba(255,255,255,0.04);">
-        <th style="padding:6px 8px;text-align:left;font-size:9px;color:#475569;
-                   text-transform:uppercase;letter-spacing:0.1em;">Caso</th>
-        <th style="padding:6px 8px;text-align:left;font-size:9px;color:#475569;
-                   text-transform:uppercase;letter-spacing:0.1em;">Esperado</th>
-        <th style="padding:6px 8px;text-align:left;font-size:9px;color:#475569;
-                   text-transform:uppercase;letter-spacing:0.1em;">Obtenido</th>
-        <th style="padding:6px 8px;text-align:left;font-size:9px;color:#475569;
-                   text-transform:uppercase;letter-spacing:0.1em;">P(esp.)</th>
-        <th style="padding:6px 8px;text-align:left;font-size:9px;color:#475569;
-                   text-transform:uppercase;letter-spacing:0.1em;">P(real)</th>
-        <th style="padding:6px 8px;text-align:center;font-size:9px;color:#475569;
-                   text-transform:uppercase;letter-spacing:0.1em;">OK</th>
-        <th style="padding:6px 8px;text-align:left;font-size:9px;color:#475569;
-                   text-transform:uppercase;letter-spacing:0.1em;">Contexto</th>
+        {th}
       </tr>
     </thead>
     <tbody>
@@ -387,7 +413,11 @@ def render_eval_scores() -> None:
 </div>
 """, unsafe_allow_html=True)
 
-    st.caption(
-        "Los casos de validación son sintéticos. "
-        "La plataforma recomendada se determina por la simulación IRT cross-platform del motor."
+    _caption = (
+        "Validation cases are synthetic. "
+        "The recommended platform is determined by the engine's IRT cross-platform simulation."
+        if lang == "en"
+        else "Los casos de validación son sintéticos. "
+             "La plataforma recomendada se determina por la simulación IRT cross-platform del motor."
     )
+    st.caption(_caption)

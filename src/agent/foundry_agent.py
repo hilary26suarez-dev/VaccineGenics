@@ -348,7 +348,7 @@ class FoundryProjectAgent:
                 {"role": "system", "content": instructions},
                 {"role": "user",   "content": user_message},
             ],
-            "max_completion_tokens": 800,  # o4-mini uses max_completion_tokens, not max_tokens
+            "max_completion_tokens": 1600,  # o4-mini uses max_completion_tokens, not max_tokens
             "temperature": 1,              # o4-mini only supports temperature=1
         }
         r = _req.post(

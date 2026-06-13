@@ -691,6 +691,8 @@ def _render_agent_message(msg: dict):
     color  = _COUNCIL_COLORS.get(slug, "#63b3ed")
     source = msg.get("source","llm")
     engine = msg.get("engine", "github_gpt4o_mini")
+    _lang  = st.session_state.get("lang", "es")
+    role_display = msg.get("role_en", msg["role"]) if _lang == "en" else msg["role"]
 
     if source != "llm":
         src_html = f'<span class="error-badge">{_t("conn_error")}</span>'
@@ -756,7 +758,7 @@ def _render_agent_message(msg: dict):
     <div>
       <span style="font-size:1.2rem;">{msg['avatar']}</span>
       <span class="agent-name" style="color:{color}; margin-left:6px;">{msg['name']}</span>
-      <span class="agent-role"> — {msg['role']}</span>
+      <span class="agent-role"> — {role_display}</span>
     </div>
     {src_html}
   </div>
@@ -892,7 +894,8 @@ def _render_council_tab(platform):
         patient_dict = cohort[sel_idx]
         target_vaccine = platform
     else:
-        labels = persona_short_labels()
+        _lang_now = st.session_state.get("lang", "es")
+        labels = persona_short_labels(lang=_lang_now)
         col_sel, col_run = st.columns([3,1])
         with col_sel:
             p_idx = st.selectbox(_t("select_demo"),
@@ -906,12 +909,14 @@ def _render_council_tab(platform):
         patient_dict = {k: persona[k] for k in
             ["patient_id","name","age","sex","ethnicity","variants","hla_haplotype","apoe_genotype","special_condition"]}
         target_vaccine = persona.get("target_vaccine", platform)
+        _bs = persona.get("backstory_en", persona["backstory"]) if _lang_now == "en" else persona["backstory"]
+        _wi = persona.get("why_interesting_en", persona["why_interesting"]) if _lang_now == "en" else persona["why_interesting"]
         st.markdown(f"""
 <div class="vg-card" style="border-left:4px solid #63b3ed; margin-top:0.5rem;">
   <b style="color:#63b3ed;">{persona['name']}</b> &nbsp;·&nbsp;
   {persona['age']} · {persona['sex']}
-  <br><span style="color:#a0aec0; font-size:0.88rem;">{persona['backstory']}</span>
-  <br><em style="color:#718096; font-size:0.82rem;">💡 {persona['why_interesting']}</em>
+  <br><span style="color:#a0aec0; font-size:0.88rem;">{_bs}</span>
+  <br><em style="color:#718096; font-size:0.82rem;">💡 {_wi}</em>
 </div>""", unsafe_allow_html=True)
 
     if start:
@@ -1036,14 +1041,15 @@ def _render_council_tab(platform):
     &nbsp;|&nbsp; <span style="color:#63b3ed;font-size:0.8rem;">⚡ Agent 6: Azure Foundry o4-mini</span>
   </div>
 </div>""", unsafe_allow_html=True)
-            # 🧠 Reasoning trace — always visible after verdict
-            _trace_label = "🧠 Árbol de Razonamiento — Trazabilidad de Agentes" if st.session_state.get("lang","es") == "es" else "🧠 Reasoning Tree — Agent Traceability"
-            with st.expander(_trace_label, expanded=False):
-                render_reasoning_trace({
-                    "steps": st.session_state.council_messages,
-                    "patient": patient_dict.get("patient_id", patient_dict.get("name","?")),
-                    "platform": sel_platform,
-                })
+            # 🧠 Reasoning trace
+            _lang_rt = st.session_state.get("lang", "es")
+            _trace_label = "🧠 Reasoning Tree — Agent Traceability" if _lang_rt == "en" else "🧠 Árbol de Razonamiento — Trazabilidad de Agentes"
+            st.markdown(f"**{_trace_label}**")
+            render_reasoning_trace({
+                "steps": st.session_state.council_messages,
+                "patient": patient_dict.get("patient_id", patient_dict.get("name","?")),
+                "platform": sel_platform,
+            }, lang=_lang_rt)
 
     else:
         st.markdown(f'<div style="text-align:center; padding:1.5rem 0 1rem; color:#718096;">{_t("select_demo").replace(":", "")} → <b>{_t("start_council")}</b></div>', unsafe_allow_html=True)
@@ -1124,9 +1130,7 @@ def _render_patient_analysis(patient_dict, report, platform):
   <div style="display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
     <div style="flex:1; min-width:220px;">
       <div style="font-size:1.25rem; font-weight:800; color:#fff;">🧬 {report.get('patient_id','?')}</div>
-      <div style="color:#a0aec0; margin-top:4px;">{report.get('age','?')} · {sex_es} · APOE: {report.get('apoe_genotype','?')}
-        {f'&nbsp;·&nbsp;<span class="badge badge-moderate">{cond_lbl}</span>' if cond!="none" else ""}
-      </div>
+      <div style="color:#a0aec0; margin-top:4px;">{report.get('age','?')} · {sex_es} · APOE: {report.get('apoe_genotype','?')}{f'&nbsp;·&nbsp;<span class="badge badge-moderate">{_html.escape(cond_lbl)}</span>' if cond!="none" else ""}</div>
       <div style="color:#718096; font-size:0.8rem; font-family:monospace; margin-top:5px;">{theta_line} · IC: {ci[0]:.0%}–{ci[1]:.0%}</div>
     </div>
     <div style="text-align:center; background:rgba(0,0,0,0.2); border-radius:10px; padding:0.7rem 1.3rem; border:1px solid {pc}40;">
