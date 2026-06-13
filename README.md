@@ -13,11 +13,11 @@
 
 ---
 
-## 🎬 Demo
+## 🎬 Demo https://youtu.be/Zc8dl3usk0c
 
-> **[▶ Live App on Streamlit Cloud](https://vaccinegenics-dbzefqukskjcbuuwkptufn.streamlit.app/)**
+> **[▶ Live App on Streamlit Cloud](https://vaccinegenics-dbzefqukskjcbuuwkptufn.streamlit.app)**
 >
-> **▶ Watch the 5-minute demo on YouTube** — _link added before submission deadline_
+> **▶ Watch the 5-minute demo on YouTube** (https://youtu.be/Zc8dl3usk0c)
 
 ---
 
