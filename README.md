@@ -338,8 +338,6 @@ Built solo, combining biomedical domain knowledge with full-stack AI engineering
 - 🌎 **Hack for Good** — AI for healthcare equity in underrepresented Latin American populations
 - 🎓 **Best Student** — International student entry · Costa Rica · UCIMED
 
-This project is supported for publication by UCIMED as part of its AI and precision medicine research program.
-
 ---
 
 ## 🗺️ Roadmap & Investment Projection
