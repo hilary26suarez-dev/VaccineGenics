@@ -81,7 +81,7 @@ Sin BD            →   Azure Cosmos DB         (historial por investigador)
 - [ ] Rate limiting por rol (estudiante / investigador / institución)
 - [ ] Preprint en bioRxiv: _"VaccineGenics: A Multi-Agent AI Framework for Pharmacogenomic Vaccine Optimization"_
 
-**Usuarios objetivo:** 100–500 investigadores en UCIMED y universidades colaboradoras en Costa Rica
+**Usuarios objetivo:** 100–500 investigadores en universidades colaboradoras en Costa Rica
 
 ---
 
