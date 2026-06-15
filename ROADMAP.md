@@ -92,7 +92,7 @@ Sin BD            →   Azure Cosmos DB         (historial por investigador)
 **El cambio crítico de Fase 2: datos genómicos reales (opt-in)**
 
 Con aprobación de comité de ética e IRB, se integran datos genómicos
-anonimizados de participantes voluntarios en estudios de vacunación de UCIMED.
+anonimizados de participantes voluntarios en estudios de vacunación.
 Esto permite calibrar el modelo para poblaciones latinoamericanas — el gap más
 importante que existe en la literatura actual.
 
@@ -218,7 +218,7 @@ y reduce respuestas subóptimas en un 20%:
 ```
 Fase 1 (investigación):
   Hilary Suárez — Lead developer + pharmacogenomics domain    [ya existe]
-  Mentor clínico (UCIMED) — validación médica               [por conseguir]
+  Mentor clínico — validación médica               [por conseguir]
   TOTAL: 1.5 personas
 
 Fase 2 (plataforma académica):
