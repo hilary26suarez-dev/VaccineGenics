@@ -533,7 +533,16 @@ class AgentCouncil:
             else:
                 sys_prompt = persona.system_prompt
 
-            user_msg = context + "\n\n" + user_tmpl.format(prev=prev_content[:600])
+            # Repeat the language instruction inside the user turn too — free/small
+            # models (e.g. Nemotron via OpenRouter) follow the system prompt less
+            # reliably than gpt-4o-mini, so reinforcing it here and at the end of
+            # the message (recency bias) noticeably improves compliance.
+            lang_tag = _LANG_INSTRUCTION_EN if lang == "en" else _LANG_INSTRUCTION_ES
+            user_msg = (
+                lang_tag + "\n\n" + context + "\n\n" +
+                user_tmpl.format(prev=prev_content[:600]) +
+                "\n\n" + lang_tag
+            )
             content = self._llm_call(sys_prompt, user_msg, slug=slug)
 
             if not content:
