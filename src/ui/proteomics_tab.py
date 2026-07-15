@@ -249,35 +249,67 @@ _PROTEINS = {
 
 # ── Vaccine mechanism steps ────────────────────────────────────────────────────
 
+def _step(emoji, label_es, label_en, desc_es, desc_en, prot):
+    return (
+        emoji,
+        {"es": label_es, "en": label_en},
+        {"es": desc_es, "en": desc_en},
+        prot,
+    )
+
+
 _VAX_STEPS = {
     "mRNA": [
-        ("💊", "1. LNP-mRNA",        "Lipid nanoparticle\nencapsulates mRNA",              "APOE",     0),
-        ("📦", "2. APOE Opsonizes",   "APOE coats LNP\n→ uptake by DCs",                   "APOE",     1),
-        ("⚙️", "3. Endosome → mRNA", "Endosomal escape\n→ free mRNA in cytoplasm",          None,       2),
-        ("🔬", "4. Translation",      "Ribosome synthesizes\nSpike protein",                 None,       3),
-        ("🛡️", "5. TLR4/7 Signal",  "LNP activates TLR4/7\nin dendritic cells",           "TLR4",     2),
-        ("🎯", "6. HLA Presentation","Spike peptides → HLA-I/II\n→ CD8+ and CD4+ T cells", "HLA-DRB1", 4),
-        ("🔥", "7. IL-6 Amplifies",  "IL-6 amplifies response\n(C/C = systemic risk)",     "IL-6",     3),
-        ("💉", "8. IgG Anti-Spike",  "B cells → neutralizing\nIgG antibodies",              None,       5),
+        _step("💊", "1. LNP-ARNm", "1. LNP-mRNA",
+              "Nanopartícula lipídica\nencapsula el ARNm", "Lipid nanoparticle\nencapsulates mRNA", "APOE"),
+        _step("📦", "2. APOE Opsoniza", "2. APOE Opsonizes",
+              "APOE recubre la LNP\n→ captación por CD", "APOE coats LNP\n→ uptake by DCs", "APOE"),
+        _step("⚙️", "3. Endosoma → ARNm", "3. Endosome → mRNA",
+              "Escape endosomal\n→ ARNm libre en citoplasma", "Endosomal escape\n→ free mRNA in cytoplasm", None),
+        _step("🔬", "4. Traducción", "4. Translation",
+              "El ribosoma sintetiza\nla proteína Spike", "Ribosome synthesizes\nSpike protein", None),
+        _step("🛡️", "5. Señal TLR4/7", "5. TLR4/7 Signal",
+              "La LNP activa TLR4/7\nen células dendríticas", "LNP activates TLR4/7\nin dendritic cells", "TLR4"),
+        _step("🎯", "6. Presentación HLA", "6. HLA Presentation",
+              "Péptidos Spike → HLA-I/II\n→ linfocitos T CD8+/CD4+", "Spike peptides → HLA-I/II\n→ CD8+ and CD4+ T cells", "HLA-DRB1"),
+        _step("🔥", "7. IL-6 Amplifica", "7. IL-6 Amplifies",
+              "IL-6 amplifica la respuesta\n(C/C = riesgo sistémico)", "IL-6 amplifies response\n(C/C = systemic risk)", "IL-6"),
+        _step("💉", "8. IgG Anti-Spike", "8. IgG Anti-Spike",
+              "Linfocitos B → anticuerpos\nIgG neutralizantes", "B cells → neutralizing\nIgG antibodies", None),
     ],
     "adenoviral_vector": [
-        ("🧬", "1. Ad/ChAdOx Capsid","Adenoviral vector\nwith antigen gene",               "TLR4",     0),
-        ("🔗", "2. CAR Receptor",    "Fiber-knob → CAR\n→ endocytosis",                    None,       1),
-        ("🛡️", "3. TLR4 Detects",  "Adenoviral capsid\nactivates TLR4",                  "TLR4",     1),
-        ("🏛️", "4. Nucleus → DNA",  "Episomal DNA\n→ antigen transcription",               None,       2),
-        ("⚙️", "5. mRNA → Spike",  "Synthesis and translation\nof vaccine antigen",        None,       3),
-        ("⚠️", "6. HLA ± VITT",    "HLA-II presents antigens\n(DRB1*11:04 → VITT risk)", "HLA-DRB1", 4),
-        ("🔥", "7. IL-6 Response", "IL-6 coordinates\ninflammation",                       "IL-6",     3),
-        ("💉", "8. IgG + CD8+",    "Antibodies + cytotoxic\nT cells",                     None,       5),
+        _step("🧬", "1. Cápside Ad/ChAdOx", "1. Ad/ChAdOx Capsid",
+              "Vector adenoviral\ncon gen del antígeno", "Adenoviral vector\nwith antigen gene", "TLR4"),
+        _step("🔗", "2. Receptor CAR", "2. CAR Receptor",
+              "Fibra viral → CAR\n→ endocitosis", "Fiber-knob → CAR\n→ endocytosis", None),
+        _step("🛡️", "3. TLR4 Detecta", "3. TLR4 Detects",
+              "La cápside adenoviral\nactiva TLR4", "Adenoviral capsid\nactivates TLR4", "TLR4"),
+        _step("🏛️", "4. Núcleo → ADN", "4. Nucleus → DNA",
+              "ADN episomal\n→ transcripción del antígeno", "Episomal DNA\n→ antigen transcription", None),
+        _step("⚙️", "5. ARNm → Spike", "5. mRNA → Spike",
+              "Síntesis y traducción\ndel antígeno vacunal", "Synthesis and translation\nof vaccine antigen", None),
+        _step("⚠️", "6. HLA ± VITT", "6. HLA ± VITT",
+              "HLA-II presenta antígenos\n(DRB1*11:04 → riesgo VITT)", "HLA-II presents antigens\n(DRB1*11:04 → VITT risk)", "HLA-DRB1"),
+        _step("🔥", "7. Respuesta IL-6", "7. IL-6 Response",
+              "IL-6 coordina\nla inflamación", "IL-6 coordinates\ninflammation", "IL-6"),
+        _step("💉", "8. IgG + CD8+", "8. IgG + CD8+",
+              "Anticuerpos + linfocitos T\ncitotóxicos", "Antibodies + cytotoxic\nT cells", None),
     ],
     "protein_subunit": [
-        ("🧪", "1. RBD + Adjuvant", "Purified RBD protein\n+ AS01/MF59 adjuvant",         "TLR4",     0),
-        ("🛡️", "2. TLR4/9 Activates","Adjuvant activates TLR4/TLR9\nin DCs → maturation", "TLR4",     1),
-        ("🔬", "3. DC Captures RBD","Dendritic cell processes\nRBD protein",                None,       2),
-        ("🎯", "4. HLA-II → CD4+", "RBD → peptides → HLA-DRB1\n→ T helper cells",        "HLA-DRB1", 3),
-        ("🔥", "5. IL-6 Support",  "IL-6 supports\nplasma B-cell differentiation",         "IL-6",     3),
-        ("🌀", "6. GC B cells",    "Germinal center:\naffinity maturation",                 None,       4),
-        ("💉", "7. High-Affinity IgG","High-affinity antibodies\nlasting protection",      None,       5),
+        _step("🧪", "1. RBD + Adyuvante", "1. RBD + Adjuvant",
+              "Proteína RBD purificada\n+ adyuvante AS01/MF59", "Purified RBD protein\n+ AS01/MF59 adjuvant", "TLR4"),
+        _step("🛡️", "2. TLR4/9 Activa", "2. TLR4/9 Activates",
+              "El adyuvante activa TLR4/TLR9\nen CD → maduración", "Adjuvant activates TLR4/TLR9\nin DCs → maturation", "TLR4"),
+        _step("🔬", "3. CD Captura RBD", "3. DC Captures RBD",
+              "La célula dendrítica procesa\nla proteína RBD", "Dendritic cell processes\nRBD protein", None),
+        _step("🎯", "4. HLA-II → CD4+", "4. HLA-II → CD4+",
+              "RBD → péptidos → HLA-DRB1\n→ linfocitos T colaboradores", "RBD → peptides → HLA-DRB1\n→ T helper cells", "HLA-DRB1"),
+        _step("🔥", "5. Soporte IL-6", "5. IL-6 Support",
+              "IL-6 favorece la\ndiferenciación de células B", "IL-6 supports\nplasma B-cell differentiation", "IL-6"),
+        _step("🌀", "6. Centro Germinal", "6. GC B cells",
+              "Centro germinal:\nmaduración de afinidad", "Germinal center:\naffinity maturation", None),
+        _step("💉", "7. IgG Alta Afinidad", "7. High-Affinity IgG",
+              "Anticuerpos de alta afinidad\nprotección duradera", "High-affinity antibodies\nlasting protection", None),
     ],
 }
 
@@ -712,7 +744,11 @@ def _plot_vaccine_mechanism(platform: str, impacts: dict[str, float], lang: str 
     n = len(steps)
 
     fig = go.Figure()
-    x_vals = [s[4] for s in steps]
+    # Steps are drawn in list order, one per column. The 5th tuple field is
+    # ignored for layout — several platforms reuse the same value on more
+    # than one step, which previously made two steps render on top of each
+    # other at the same (x, y) position.
+    x_vals = list(range(n))
     max_x = max(x_vals) + 1
 
     xs_sorted = sorted(set(x_vals))
@@ -725,7 +761,9 @@ def _plot_vaccine_mechanism(platform: str, impacts: dict[str, float], lang: str 
             arrowwidth=1.5, arrowcolor="rgba(99,179,237,0.4)",
         )
 
-    for emoji, label, desc, prot, xi in steps:
+    for xi, (emoji, label_d, desc_d, prot) in enumerate(steps):
+        label = _p(lang, label_d)
+        desc = _p(lang, desc_d)
         sc = impacts.get(prot, 0.0) if prot else 0.0
         box_color  = _impact_color(sc)
         fill_alpha = 0.10 if sc == 0.0 else 0.18
