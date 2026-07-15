@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import logging
 import textwrap
 from dataclasses import dataclass, field
@@ -32,6 +33,23 @@ _GITHUB_MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
 # OpenRouter — OpenAI-compatible endpoint, used when GITHUB_TOKEN is missing
 # or has expired (401/403 at call time). Free Nemotron models, no credit card.
 _OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1"
+
+_THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", re.IGNORECASE | re.DOTALL)
+_UNCLOSED_THINK_RE = re.compile(r"<think>.*", re.IGNORECASE | re.DOTALL)
+
+
+def _strip_reasoning(text: str) -> str:
+    """
+    Remove any leaked <think>...</think> chain-of-thought block from a
+    reasoning model's response (e.g. Nemotron). If the block was never
+    closed — the response got cut off mid-thought by max_tokens — drop
+    everything from <think> onward, since there is no real answer left.
+    """
+    if not text:
+        return text
+    cleaned = _THINK_BLOCK_RE.sub("", text)
+    cleaned = _UNCLOSED_THINK_RE.sub("", cleaned)
+    return cleaned.strip()
 
 # ── Agent persona definitions ─────────────────────────────────────────────────
 
@@ -389,7 +407,7 @@ class AgentCouncil:
                     temperature=0.4,
                 )
                 self._last_engine = "github_gpt4o_mini"
-                return resp.choices[0].message.content.strip()
+                return _strip_reasoning(resp.choices[0].message.content.strip())
             except Exception as exc:
                 logger.warning(f"GitHub Models call failed ({exc}) — probando OpenRouter")
 
@@ -399,17 +417,25 @@ class AgentCouncil:
         if openrouter is None:
             return ""
         try:
+            # Nemotron models are reasoning models: unless told otherwise they emit
+            # a long English <think>...</think> block before the real answer, which
+            # can eat the whole token budget and leak into the visible response.
+            # "detailed thinking off" is NVIDIA's documented switch to skip that.
+            nemotron_system = "detailed thinking off\n\n" + system
             resp = openrouter.chat.completions.create(
-                model=os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-nano-30b-a3b:free"),
+                model=os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free"),
                 messages=[
-                    {"role": "system", "content": system},
+                    {"role": "system", "content": nemotron_system},
                     {"role": "user", "content": user_message},
                 ],
-                max_tokens=max_tokens,
+                max_tokens=max(max_tokens, 1600),
                 temperature=0.4,
             )
             self._last_engine = "openrouter_nemotron"
-            return resp.choices[0].message.content.strip()
+            cleaned = _strip_reasoning(resp.choices[0].message.content.strip())
+            if not cleaned:
+                logger.warning("OpenRouter: response was pure reasoning (truncated before the answer)")
+            return cleaned
         except Exception as exc:
             logger.error(f"Council OpenRouter call failed: {exc}")
             return ""
