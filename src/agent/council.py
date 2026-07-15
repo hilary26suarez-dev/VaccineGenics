@@ -525,13 +525,15 @@ class AgentCouncil:
             if progress_callback:
                 progress_callback(persona.name)
 
-            # Swap language instruction in system prompt based on selected lang
+            # Swap language instruction in system prompt based on selected lang,
+            # and also prepend it as the very first line — small/free models
+            # weigh the start of the system prompt more heavily than the end.
             if lang == "en":
-                sys_prompt = persona.system_prompt.replace(
+                sys_prompt = _LANG_INSTRUCTION_EN + "\n\n" + persona.system_prompt.replace(
                     _LANG_INSTRUCTION_ES, _LANG_INSTRUCTION_EN
                 )
             else:
-                sys_prompt = persona.system_prompt
+                sys_prompt = _LANG_INSTRUCTION_ES + "\n\n" + persona.system_prompt
 
             # Repeat the language instruction inside the user turn too — free/small
             # models (e.g. Nemotron via OpenRouter) follow the system prompt less

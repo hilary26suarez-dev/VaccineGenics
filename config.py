@@ -22,7 +22,7 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 # OpenRouter (free tier — used as fallback / demo mode when GITHUB_TOKEN is
 # missing or expired). Get key: openrouter.ai/keys
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-nano-30b-a3b:free")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free")
 
 # Azure AI Search
 AZURE_SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT", "")

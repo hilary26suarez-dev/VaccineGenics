@@ -703,13 +703,6 @@ def _render_agent_message(msg: dict):
             f'border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;'
             f'color:#63b3ed;margin-left:5px;white-space:nowrap;">⚡ Azure Foundry o4-mini</span>'
         )
-    elif engine == "openrouter_nemotron":
-        src_html = (
-            f'<span class="live-badge">{_t("ai_live")}</span>'
-            f'<span style="background:rgba(118,185,0,0.18);border:1px solid rgba(118,185,0,0.55);'
-            f'border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;'
-            f'color:#76b900;margin-left:5px;white-space:nowrap;">🟢 NVIDIA Nemotron (OpenRouter)</span>'
-        )
     else:
         src_html = f'<span class="live-badge">{_t("ai_live")}</span>'
 
