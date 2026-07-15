@@ -12,18 +12,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GITHUB_ENDPOINT = "https://models.inference.ai.azure.com"
+OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1"
 
 def query_model(model: str, prompt: str, label: str) -> dict:
     try:
         from openai import OpenAI
-        # Prefer direct OpenAI key, fall back to GitHub Models
+        # Prefer direct OpenAI key, then GitHub Models, then OpenRouter (free Nemotron)
         openai_key = os.getenv("OPENAI_API_KEY", "")
         github_token = os.getenv("GITHUB_TOKEN", "")
+        openrouter_key = os.getenv("OPENROUTER_API_KEY", "")
 
         if openai_key and "gpt" in model:
             client = OpenAI(api_key=openai_key)
         elif github_token:
             client = OpenAI(base_url=GITHUB_ENDPOINT, api_key=github_token)
+        elif openrouter_key:
+            client = OpenAI(base_url=OPENROUTER_ENDPOINT, api_key=openrouter_key)
+            model = os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-nano-30b-a3b:free")
         else:
             return {"label": label, "model": model, "response": "ERROR: No API key available"}
 

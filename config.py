@@ -19,6 +19,11 @@ AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")
 # Get token: github.com/settings/tokens → New token → no special scopes needed
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
+# OpenRouter (free tier — used as fallback / demo mode when GITHUB_TOKEN is
+# missing or expired). Get key: openrouter.ai/keys
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-nano-30b-a3b:free")
+
 # Azure AI Search
 AZURE_SEARCH_ENDPOINT = os.getenv("AZURE_SEARCH_ENDPOINT", "")
 AZURE_SEARCH_INDEX = os.getenv("AZURE_SEARCH_INDEX", "vaccinegenics-knowledge")

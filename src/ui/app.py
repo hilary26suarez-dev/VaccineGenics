@@ -109,7 +109,7 @@ _TRANS: dict[str, dict[str, str]] = {
         "analyzing_custom": "Analizando perfil personalizado con motor IRT 4PL...",
         "genetics_responding": "Genetista respondiendo...",
         "council_responding": "Respondiendo...",
-        "no_llm": "Servicio LLM no disponible. Verifica GITHUB_TOKEN en .env.",
+        "no_llm": "Servicio LLM no disponible. Verifica GITHUB_TOKEN u OPENROUTER_API_KEY en .env.",
         "first_run_no_cohort": "Primero ejecuta el análisis de cohorte en el Dashboard.",
         "methodology_toggle": "📖 Ver metodología de datos sintéticos",
         "landing_title": "Tu ADN determina si una vacuna te protegerá. <em style='color:#63b3ed;'>VaccineGenics lo calcula.</em>",
@@ -270,7 +270,7 @@ _TRANS: dict[str, dict[str, str]] = {
         "analyzing_custom": "Analyzing custom profile with IRT 4PL engine...",
         "genetics_responding": "Geneticist responding...",
         "council_responding": "Responding...",
-        "no_llm": "LLM service unavailable. Check GITHUB_TOKEN in .env.",
+        "no_llm": "LLM service unavailable. Check GITHUB_TOKEN or OPENROUTER_API_KEY in .env.",
         "first_run_no_cohort": "First run the cohort analysis in the Dashboard.",
         "methodology_toggle": "📖 View synthetic data methodology",
         "landing_title": "Your DNA determines whether a vaccine will protect you. <em style='color:#63b3ed;'>VaccineGenics calculates it.</em>",
@@ -703,6 +703,13 @@ def _render_agent_message(msg: dict):
             f'border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;'
             f'color:#63b3ed;margin-left:5px;white-space:nowrap;">⚡ Azure Foundry o4-mini</span>'
         )
+    elif engine == "openrouter_nemotron":
+        src_html = (
+            f'<span class="live-badge">{_t("ai_live")}</span>'
+            f'<span style="background:rgba(118,185,0,0.18);border:1px solid rgba(118,185,0,0.55);'
+            f'border-radius:999px;padding:2px 9px;font-size:0.7rem;font-weight:700;'
+            f'color:#76b900;margin-left:5px;white-space:nowrap;">🟢 NVIDIA Nemotron (OpenRouter)</span>'
+        )
     else:
         src_html = f'<span class="live-badge">{_t("ai_live")}</span>'
 
@@ -1012,7 +1019,7 @@ def _render_council_tab(platform):
     {_t("council_session", patient_dict.get('patient_id', patient_dict.get('name','?')))}
   </div>
   <span class="{'live-badge' if n_live == 6 else ('error-badge' if n_live == 0 else 'live-badge')}">
-    {'✅ ' + str(n_live) + '/6' if n_live > 0 else '❌ Error — GITHUB_TOKEN'}
+    {'✅ ' + str(n_live) + '/6' if n_live > 0 else '❌ Error — GITHUB_TOKEN / OPENROUTER_API_KEY'}
   </span>
 </div>""", unsafe_allow_html=True)
 

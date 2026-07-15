@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 # GitHub Models / Azure AI Inference endpoint (explicitly allowed by Agents League rules)
 _GITHUB_MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
 
+# OpenRouter — OpenAI-compatible endpoint, used when GITHUB_TOKEN is missing
+# or has expired (401/403 at call time). Free Nemotron models, no credit card.
+_OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1"
+
 # ── Agent persona definitions ─────────────────────────────────────────────────
 
 @dataclass
@@ -276,6 +280,7 @@ class AgentCouncil:
 
     def __init__(self):
         self._llm_client = None
+        self._openrouter_client = None
         self._foundry_client = None
 
     def _get_foundry_client(self):
@@ -325,6 +330,27 @@ class AgentCouncil:
                 self._llm_client = None
         return self._llm_client
 
+    def _get_openrouter_client(self):
+        """Return a ready OpenAI client pointed at OpenRouter (free Nemotron models)."""
+        if self._openrouter_client is None:
+            try:
+                from dotenv import load_dotenv, find_dotenv
+                load_dotenv(find_dotenv(usecwd=False))
+                key = os.getenv("OPENROUTER_API_KEY", "")
+                if key:
+                    from openai import OpenAI
+                    self._openrouter_client = OpenAI(
+                        base_url=_OPENROUTER_ENDPOINT,
+                        api_key=key,
+                    )
+                    logger.info("Council LLM: OpenRouter ready")
+                else:
+                    logger.warning("Council LLM: OPENROUTER_API_KEY no está configurado")
+            except Exception as exc:
+                logger.error(f"Council OpenRouter init failed: {exc}")
+                self._openrouter_client = None
+        return self._openrouter_client
+
     # Only the final synthesis agent uses Foundry — it has the highest clinical weight
     # and 1 call per analysis fits within free-tier quota (1 RPM for o4-mini GlobalStandard).
     # The other 5 agents use GitHub Models (Azure AI Inference infrastructure).
@@ -351,11 +377,30 @@ class AgentCouncil:
 
         # Prioridad 2: GitHub Models / Azure AI Inference (gpt-4o, gratuito)
         client = self._get_llm_client()
-        if client is None:
+        if client is not None:
+            try:
+                resp = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user_message},
+                    ],
+                    max_tokens=max_tokens,
+                    temperature=0.4,
+                )
+                self._last_engine = "github_gpt4o_mini"
+                return resp.choices[0].message.content.strip()
+            except Exception as exc:
+                logger.warning(f"GitHub Models call failed ({exc}) — probando OpenRouter")
+
+        # Prioridad 3: OpenRouter (Nemotron, gratuito) — usado si GITHUB_TOKEN
+        # falta o venció (401/403), o si la llamada anterior falló por otra razón.
+        openrouter = self._get_openrouter_client()
+        if openrouter is None:
             return ""
         try:
-            resp = client.chat.completions.create(
-                model="gpt-4o-mini",
+            resp = openrouter.chat.completions.create(
+                model=os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-nano-30b-a3b:free"),
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": user_message},
@@ -363,10 +408,10 @@ class AgentCouncil:
                 max_tokens=max_tokens,
                 temperature=0.4,
             )
-            self._last_engine = "github_gpt4o_mini"
+            self._last_engine = "openrouter_nemotron"
             return resp.choices[0].message.content.strip()
         except Exception as exc:
-            logger.error(f"Council LLM call failed: {exc}")
+            logger.error(f"Council OpenRouter call failed: {exc}")
             return ""
 
     # ── LLM session ──────────────────────────────────────────────────────────
@@ -494,7 +539,7 @@ class AgentCouncil:
             if not content:
                 content = (
                     f"⚠️ **Error de conexión** — No se pudo contactar al servicio de IA para {persona.name}.\n"
-                    "Verifica que GITHUB_TOKEN esté configurado en el archivo `.env` y que tengas acceso a GitHub Models."
+                    "Verifica que GITHUB_TOKEN u OPENROUTER_API_KEY estén configurados en el archivo `.env`."
                 )
                 source = "error"
                 engine = "github_gpt4o_mini"

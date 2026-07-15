@@ -62,6 +62,8 @@ from config import (
     AZURE_OPENAI_DEPLOYMENT,
     AZURE_OPENAI_API_KEY,
     GITHUB_TOKEN,
+    OPENROUTER_API_KEY,
+    OPENROUTER_MODEL,
     AZURE_SEARCH_INDEX,
     KNOWLEDGE_BASE_DIR,
 )
@@ -171,8 +173,9 @@ class VaccineGenicsAgent:
         """
         Run a full pharmacogenomic analysis on one patient.
         Returns a dict with the agent's recommendation and reasoning trace.
-        Falls back to GitHubModelsAgent if the Foundry Agents API is unavailable
-        (e.g., no deployed model quota on free Azure account).
+        Falls back to GitHubModelsAgent, then OpenRouterAgent, if the Foundry
+        Agents API is unavailable (e.g., no deployed model quota on free Azure
+        account, or the token has expired).
         """
         try:
             client = self._get_client()
@@ -180,7 +183,12 @@ class VaccineGenicsAgent:
         except Exception as exc:
             logger.warning(f"Foundry Agents API unavailable ({exc}) — falling back to GitHub Models")
             if GITHUB_TOKEN:
-                return GitHubModelsAgent().analyze_patient(patient_data, verbose)
+                try:
+                    return GitHubModelsAgent().analyze_patient(patient_data, verbose)
+                except Exception as exc2:
+                    logger.warning(f"GitHub Models unavailable ({exc2}) — falling back to OpenRouter")
+            if OPENROUTER_API_KEY:
+                return OpenRouterAgent().analyze_patient(patient_data, verbose)
             raise
 
         # Create an isolated thread per patient (stateful context)
@@ -771,6 +779,9 @@ class GitHubModelsAgent:
                 logger.info(f"GitHub Models usage: {response.usage}")
         except Exception as exc:
             logger.error(f"GitHub Models call failed for {pid}: {exc}")
+            if OPENROUTER_API_KEY:
+                logger.warning("Falling back to OpenRouter (Nemotron)")
+                return OpenRouterAgent().analyze_patient(patient_data, verbose)
             offline = OfflineVaccineGenicsAgent()
             result = offline.analyze_patient(patient_data, verbose)
             result["run_status"] = f"github_models_error_fallback: {exc}"
@@ -798,6 +809,118 @@ class GitHubModelsAgent:
         return recommendation
 
 
+class OpenRouterAgent:
+    """
+    VaccineGenics agent powered by OpenRouter — used as a fallback demo mode
+    when GITHUB_TOKEN is missing or has expired.
+
+    OpenRouter exposes an OpenAI-compatible Chat Completions API and offers
+    several free NVIDIA Nemotron models (no credit card required).
+
+    Setup:
+      1. Go to openrouter.ai/keys → Create key
+      2. Set OPENROUTER_API_KEY=your_key in .env
+      3. Optionally set OPENROUTER_MODEL (defaults to a free Nemotron model)
+    """
+
+    OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1"
+
+    def __init__(self, token: str = None, model: str = None):
+        if not OPENAI_AVAILABLE:
+            raise ImportError("openai package not installed. Run: pip install openai>=1.30.0")
+        self.token = token or OPENROUTER_API_KEY
+        self.model = model or OPENROUTER_MODEL
+        if not self.token:
+            raise ValueError(
+                "OPENROUTER_API_KEY not set. Create a key at "
+                "openrouter.ai/keys and add OPENROUTER_API_KEY=<key> to your .env"
+            )
+        self._client = _OpenAI(
+            base_url=self.OPENROUTER_ENDPOINT,
+            api_key=self.token,
+        )
+        logger.info(f"OpenRouterAgent ready: model={self.model}")
+
+    def analyze_patient(self, patient_data: dict, verbose: bool = False) -> dict:
+        """Run pharmacogenomics analysis via OpenRouter (Nemotron)."""
+        from pharmacogenomics.risk_calculator import analyze_patient as _analyze
+        from pharmacogenomics.modules.immunocompromised_module import SpecialCondition
+
+        pid = patient_data["patient_id"]
+        platform = patient_data.get("target_vaccine", "mRNA")
+        raw_condition = patient_data.get("special_condition", SpecialCondition.NONE.value)
+        try:
+            condition = SpecialCondition(raw_condition)
+        except ValueError:
+            condition = SpecialCondition.NONE
+
+        # Run local engine — provides computed scores for the model to reason about
+        report = _analyze(
+            patient_id=pid,
+            age=patient_data["age"],
+            sex=patient_data["sex"],
+            variants=patient_data["variants"],
+            hla_haplotype=patient_data["hla_haplotype"],
+            apoe_genotype=patient_data["apoe_genotype"],
+            target_vaccine=platform,
+            special_condition=condition,
+        )
+
+        prompt = build_patient_analysis_prompt(patient_data)
+        score_context = (
+            f"\n\n[Engine Pre-computation]\n"
+            f"Score_TLR={report.tlr.score:.4f}  Score_HLA={report.hla.score:.4f}  "
+            f"Score_STAT={report.stat.score:.4f}  Score_APOE={report.apoe.score:.4f}\n"
+            f"θ_genetic={report.irt.theta_genetic:+.4f}  "
+            f"θ_penalty={report.irt.theta_penalty:+.4f} [{condition.value}]  "
+            f"θ_clinical={report.irt.theta:+.4f}\n"
+            f"P(protection|{platform})={report.irt.probability_protection:.4f}  "
+            f"b_base={report.irt.b_base}  b_final={report.irt.b:.4f}\n"
+            f"Risk flags: {report.all_risk_flags}"
+        )
+
+        try:
+            response = self._client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": VACCINEGENICS_SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt + score_context},
+                ],
+                max_tokens=4096,
+                temperature=0.1,
+            )
+            raw_response = response.choices[0].message.content or ""
+            if verbose:
+                logger.info(f"OpenRouter usage: {response.usage}")
+        except Exception as exc:
+            logger.error(f"OpenRouter call failed for {pid}: {exc}")
+            offline = OfflineVaccineGenicsAgent()
+            result = offline.analyze_patient(patient_data, verbose)
+            result["run_status"] = f"openrouter_error_fallback: {exc}"
+            return result
+
+        recommendation = extract_recommendation_from_response(raw_response)
+        cot = html.escape(raw_response)
+
+        _o = OfflineVaccineGenicsAgent()
+        recommendation.update({
+            "patient_id": pid,
+            "full_report": cot,
+            "platform": report.irt.vaccine_platform,
+            "dose_recommendation": report.irt.dose_recommendation,
+            "protection_probability": report.irt.probability_protection,
+            "risk_flags": report.all_risk_flags,
+            "overall_risk_level": report.overall_risk_level,
+            "final_recommendation": report.final_recommendation,
+            "structured_report": _o._build_structured_report(report),
+            "reasoning_trace": _o._build_trace(report),
+            "run_status": "completed_openrouter",
+            "model": self.model,
+            "endpoint": self.OPENROUTER_ENDPOINT,
+        })
+        return recommendation
+
+
 def get_agent(
     offline: bool = False,
     prefer_openai: bool = False,
@@ -807,10 +930,11 @@ def get_agent(
 
     Priority:
       1. VaccineGenicsAgent    — full Azure AI Foundry Agents API (AZURE_AI_PROJECT_ENDPOINT)
-                                 falls back to GitHubModelsAgent if no model is deployed
+                                 falls back to GitHubModelsAgent / OpenRouterAgent if no model is deployed
       2. GitHubModelsAgent     — GitHub Models / Azure AI Inference (GITHUB_TOKEN) ← active
-      3. AzureOpenAIAgent      — Azure OpenAI Chat Completions (AZURE_OPENAI_ENDPOINT)
-      4. OfflineVaccineGenicsAgent — local engine, no cloud credentials
+      3. OpenRouterAgent       — OpenRouter free Nemotron models (OPENROUTER_API_KEY)
+      4. AzureOpenAIAgent      — Azure OpenAI Chat Completions (AZURE_OPENAI_ENDPOINT)
+      5. OfflineVaccineGenicsAgent — local engine, no cloud credentials
 
     Use offline=True to force local mode (demo/CI).
     Use prefer_openai=True to skip Agents API and use AzureOpenAI directly.
@@ -839,9 +963,19 @@ def get_agent(
             logger.info("✅ Using GitHub Models / Azure AI Inference (Azure AI Foundry infrastructure)")
             return agent
         except Exception as exc:
-            logger.warning(f"GitHub Models init failed ({exc}) — trying Azure OpenAI")
+            logger.warning(f"GitHub Models init failed ({exc}) — trying OpenRouter")
 
-    # Priority 3: Azure OpenAI Chat Completions (requires a deployed model)
+    # Priority 3: OpenRouter — FREE Nemotron models, no credit card needed!
+    # Used when GITHUB_TOKEN is missing (or its init failed above).
+    if OPENROUTER_API_KEY:
+        try:
+            agent = OpenRouterAgent()
+            logger.info("✅ Using OpenRouter (Nemotron)")
+            return agent
+        except Exception as exc:
+            logger.warning(f"OpenRouter init failed ({exc}) — trying Azure OpenAI")
+
+    # Priority 4: Azure OpenAI Chat Completions (requires a deployed model)
     if AZURE_OPENAI_ENDPOINT or AZURE_OPENAI_API_KEY:
         try:
             agent = AzureOpenAIAgent()
