@@ -51,6 +51,28 @@ def _strip_reasoning(text: str) -> str:
     cleaned = _UNCLOSED_THINK_RE.sub("", cleaned)
     return cleaned.strip()
 
+
+def _dedupe_repeated_answer(text: str, anchor_len: int = 50) -> str:
+    """
+    Some free/quantized models occasionally loop and re-emit the whole
+    answer a second time in the same response. Scan for a long verbatim
+    chunk from early in the text reappearing later, and if found, keep
+    only the first occurrence — a 50-char verbatim repeat is not
+    something normal prose produces by chance.
+    """
+    n = len(text)
+    if n < 200:
+        return text
+    step = anchor_len // 2
+    for start in range(0, int(n * 0.6), step):
+        anchor = text[start:start + anchor_len]
+        if len(anchor) < anchor_len:
+            break
+        idx = text.find(anchor, start + anchor_len)
+        if idx != -1:
+            return text[:idx].strip()
+    return text
+
 # ── Agent persona definitions ─────────────────────────────────────────────────
 
 @dataclass
@@ -407,7 +429,8 @@ class AgentCouncil:
                     temperature=0.4,
                 )
                 self._last_engine = "github_gpt4o_mini"
-                return _strip_reasoning(resp.choices[0].message.content.strip())
+                cleaned = _strip_reasoning(resp.choices[0].message.content.strip())
+                return _dedupe_repeated_answer(cleaned)
             except Exception as exc:
                 logger.warning(f"GitHub Models call failed ({exc}) — probando OpenRouter")
 
@@ -435,7 +458,7 @@ class AgentCouncil:
             cleaned = _strip_reasoning(resp.choices[0].message.content.strip())
             if not cleaned:
                 logger.warning("OpenRouter: response was pure reasoning (truncated before the answer)")
-            return cleaned
+            return _dedupe_repeated_answer(cleaned)
         except Exception as exc:
             logger.error(f"Council OpenRouter call failed: {exc}")
             return ""
